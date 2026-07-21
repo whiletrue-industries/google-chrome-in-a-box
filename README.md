@@ -4,13 +4,13 @@ A headful Google Chrome running under Xvfb inside a container, with its devtools
 protocol port and its download directory published over the network — so a
 remote Selenium client can drive it and collect whatever it downloaded.
 
-Image: `ghcr.io/akariv/google-chrome-in-a-box`
+Image: `ghcr.io/whiletrue-industries/google-chrome-in-a-box`
 
 ## Running
 
 ```bash
 docker run -p 9223:9223 -p 9224:9224 -d \
-    ghcr.io/akariv/google-chrome-in-a-box 9223 9224 https://data.gov.il
+    ghcr.io/whiletrue-industries/google-chrome-in-a-box 9223 9224 https://data.gov.il
 ```
 
 Arguments are `<devtools-port> <downloads-port> <initial-url>`, and the two
