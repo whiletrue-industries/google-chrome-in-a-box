@@ -1,5 +1,7 @@
 # google-chrome-in-a-box
 
+[![test & publish](https://github.com/whiletrue-industries/google-chrome-in-a-box/actions/workflows/ci.yml/badge.svg)](https://github.com/whiletrue-industries/google-chrome-in-a-box/actions/workflows/ci.yml)
+
 A headful Google Chrome running under Xvfb inside a container, with its devtools
 protocol port and its download directory published over the network — so a
 remote Selenium client can drive it and collect whatever it downloaded.
@@ -18,7 +20,18 @@ ports must also be published, as Chrome advertises itself on them.
 
 - `http://<host>:9223/json/list` — the devtools endpoint Selenium attaches to.
 - `http://<host>:9224/<filename>` — `GET` a downloaded file, `DELETE` to remove it.
-- `http://<host>:9224/screenshot` — a PNG of the current X display.
+- `http://<host>:9224/screenshot` — a PNG of the current X display (the whole
+  screen, browser chrome included — not just the page viewport).
+
+## User agent
+
+By default Chrome announces itself with its real version plus a
+`datagov-external-client` marker. It is derived from the Chrome in the image
+rather than pinned: a stale version string contradicts the `sec-ch-ua` client
+hints Chrome sends from its actual version, and bot protection treats that
+mismatch as a signal — www.gov.il answers such requests with a 403 and renders
+nothing. Override with `docker run -e USER_AGENT='...'` if a site needs
+something specific.
 
 ## Driving it
 
@@ -33,6 +46,11 @@ driver.get('https://data.gov.il/api/action/package_search')
 
 Connect by **IP address**, not hostname: Chrome rejects devtools requests whose
 `Host` header is neither `localhost` nor an IP.
+
+Navigate with `driver.get()` rather than relying on whatever the initial-url
+argument loaded. That first load races Chrome's own startup, and can fail with
+`ERR_CERT_VERIFIER_CHANGED` when the cert verifier re-initializes mid-flight —
+leaving a half-loaded page that a screenshot will happily capture.
 
 ## Tests
 
