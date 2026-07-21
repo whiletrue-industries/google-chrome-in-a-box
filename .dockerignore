@@ -1,0 +1,6 @@
+.git
+.github
+.venv*
+tests
+requirements-test.txt
+*.md

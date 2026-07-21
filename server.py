@@ -17,7 +17,7 @@ def path_handler(filename):
     if request.method == 'GET':
         return send_from_directory('/downloads', filename)
     elif request.method == 'DELETE':
-        os.unlink(filename)
+        os.unlink(os.path.join('/downloads', filename))
         return 'OK'
 
 if __name__ == "__main__":

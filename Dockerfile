@@ -1,17 +1,29 @@
-FROM ubuntu:bionic
+FROM ubuntu:24.04
 
+ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /app/
 
-RUN apt-get update && apt-get install -y wget gnupg unzip xvfb net-tools socat curl python3 python3-pip x11-apps imagemagick
-RUN pip3 install flask
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ca-certificates wget gnupg unzip xvfb net-tools socat curl \
+        python3 python3-venv x11-apps imagemagick fonts-liberation \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
-    sh -c 'echo  "deb https://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' && \
+RUN mkdir -p /etc/apt/keyrings && \
+    wget -q -O /etc/apt/keyrings/google-chrome.asc https://dl-ssl.google.com/linux/linux_signing_key.pub && \
+    echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/google-chrome.asc] https://dl.google.com/linux/chrome/deb/ stable main" \
+        > /etc/apt/sources.list.d/google-chrome.list && \
     apt-get update && \
-    apt-get install -y google-chrome-stable
-RUN mkdir /userdata/ && mkdir /downloads/
+    apt-get install -y --no-install-recommends google-chrome-stable && \
+    rm -rf /var/lib/apt/lists/*
 
-ENV DBUS_SESSION_BUS_ADDRESS=/run/dbus/system_bus_socket
+# Ubuntu 24.04 marks the system python as externally managed (PEP 668), so flask
+# lives in its own virtualenv.
+RUN python3 -m venv /app/venv && /app/venv/bin/pip install --no-cache-dir flask
+ENV PATH=/app/venv/bin:$PATH
+
+RUN mkdir -p /userdata/ /downloads/
+
+ENV DBUS_SESSION_BUS_ADDRESS=disabled:
 ENV DISPLAY=:99.0
 
 COPY entrypoint.sh .
